@@ -1,25 +1,22 @@
 #version 330 core
-
 out vec4 FragColor;
 
 in vec2 vTexCoord;
 in vec2 vScreenPos;
 
-uniform sampler2D uDiffuse; // color texture
-uniform sampler2D uNormal;  // normal map (optional)
+uniform sampler2D uDiffuse; 
+uniform sampler2D uNormal;
 
-uniform bool uUseNormalMap; // if true, sample normal map
-uniform vec2 uLightPos;     // The ball's position in screen space
-uniform vec2 uResolution;   // screen resolution (width, height)
+uniform bool uUseNormalMap;
+uniform vec2 uLightPos;  
+uniform vec2 uResolution; 
 
-// Basic 2D normal mapping approach
 void main()
 {
-    // 1. Fetch base color
+    // 1) Base color
     vec3 color = texture(uDiffuse, vTexCoord).rgb;
 
-    // 2. If using normal map, fetch it. Otherwise default to a "flat" normal
-    //    pointing out of the screen (0, 0, 1).
+    // 2) Normal map or fallback
     vec3 normalSample = vec3(0.0, 0.0, 1.0);
     if(uUseNormalMap)
     {
@@ -27,27 +24,28 @@ void main()
         normalSample = normalize(nm * 2.0 - 1.0);
     }
 
-    // 3. Compute fragment position in screen space
-    //    We'll just use gl_FragCoord for an accurate fragment location.
-    vec2 fragPos = gl_FragCoord.xy; // in [0..resolution], bottom-left origin
+    // 3) Screen space position
+    vec2 fragPos = gl_FragCoord.xy;
 
-    // 4. Light direction in 2D
+    // 4) Light direction + distance
     vec2 lightDir2D = uLightPos - fragPos;
     float dist = length(lightDir2D);
     vec3 lightDir3D = normalize(vec3(lightDir2D, 0.0));
 
-    // 5. Dot product with normal for diffuse
-    vec3 N = normalSample;  // in 2D space, the “z” axis is out of screen
-    float diff = max(dot(N, lightDir3D), 0.0);
+    // 5) Diffuse
+    float diff = max(dot(normalSample, lightDir3D), 0.0);
 
-    // 6. Simple radial attenuation
-    float radius = 300.0; // tweak this to change the light falloff
+    // 6) Brighten these lines:
+    float ambient   = 0.4;     // higher ambient
+    float radius    = 500.0;   // bigger range
+    float diffBoost = 1.5;     // stronger direct lighting
+
+    // Attenuation
     float att = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-    // 7. Combine with a bit of ambient
-    float ambient = 0.2;
-    float lighting = ambient + diff * att;
-
+    // Combine
+    float lighting = ambient + diff * att * diffBoost;
+    
     vec3 finalColor = color * lighting;
     FragColor = vec4(finalColor, 1.0);
 }
