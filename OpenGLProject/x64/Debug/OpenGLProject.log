@@ -1,16 +1,16 @@
 ﻿  OpenGLProject.cpp
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(456,57): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(463,73): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(463,48): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(472,72): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(472,46): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(487,18): warning C4244: "Initialisierung": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(641,38): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(642,39): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(652,38): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(653,39): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(738,22): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
-C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(753,22): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(468,57): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(475,73): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(475,48): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(484,72): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(484,46): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(499,18): warning C4244: "Initialisierung": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(657,38): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(658,39): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(669,38): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(670,39): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(774,23): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\OpenGLProject.cpp(789,23): warning C4244: "=": Konvertierung von "int" in "float", möglicher Datenverlust
   OpenGLProject.vcxproj -> C:\Users\ninor\Documents\GitHub\OpenGLProject\x64\Debug\OpenGLProject.exe
   Der Befehl "pwsh.exe" ist entweder falsch geschrieben oder
   konnte nicht gefunden werden.

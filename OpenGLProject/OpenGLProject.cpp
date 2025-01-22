@@ -181,7 +181,7 @@ struct GameObject {
     GLuint normalTex;
 
     bool  isPowerUp = false;
-    int   powerUpType = 0; // 0->speed up, 1->spawn ball, 2->enlarge
+    int   powerUpType = 0; // 0->speed up, 1->invert ball, 2->enlarge, 3->minimize, 4->decrease speed
 
     GameObject(float px, float py, float pw, float ph,
         GLuint tex, bool nm = false, GLuint ntex = 0)
@@ -209,7 +209,7 @@ struct BallObject : public GameObject {
 BallObject* gBall = nullptr;
 
 // Fewer powerups
-std::vector<GameObject> gPowerUps; //2 in total
+std::vector<GameObject> gPowerUps; //3 in total
 
 // Background
 GameObject* gBackground = nullptr;
@@ -234,6 +234,8 @@ GLuint gDigitTextures[10];
 GLuint gMsgTexSpeed = 0;
 GLuint gMsgTexSpawn = 0;
 GLuint gMsgTexEnlarge = 0;
+GLuint gMsgTexMinimize = 0;
+GLuint gMsgTexSpeedDecrease = 0;
 
 // Active messages on screen
 struct ActiveMessage {
@@ -306,6 +308,8 @@ void showPowerUpMessage(int powerType, int side)
     if (powerType == 0)      tex = gMsgTexSpeed;
     else if (powerType == 1) tex = gMsgTexSpawn;
     else if (powerType == 2) tex = gMsgTexEnlarge;
+    else if (powerType == 3) tex = gMsgTexMinimize;
+    else if (powerType == 4) tex = gMsgTexSpeedDecrease;
 
     if (tex != 0)
     {
@@ -436,10 +440,18 @@ void initGame()
     std::cout << "Loading Enlarge Powerup\n";
     gMsgTexEnlarge = loadTexture("../resources/msg_enlarge.png");
     std::cout << "Enlarge Texture loaded.\n";
+    std::cout << "Loading Minimize Powerup\n";
+    gMsgTexMinimize = loadTexture("../resources/msg_enlarge.png");
+    std::cout << "Minimize Texture loaded.\n";
+    std::cout << "Loading SpeedDecrease Powerup\n";
+    gMsgTexSpeedDecrease = loadTexture("../resources/msg_enlarge.png");
+    std::cout << "SpeedDecrease Texture loaded.\n";
 
     if (!gMsgTexSpeed)   std::cerr << "WARNING: msg_speed.png missing.\n";
     if (!gMsgTexSpawn)   std::cerr << "WARNING: msg_spawn.png missing.\n";
     if (!gMsgTexEnlarge) std::cerr << "WARNING: msg_enlarge.png missing.\n";
+    if (!gMsgTexMinimize) std::cerr << "WARNING: msg_minimize.png missing.\n";
+    if (!gMsgTexSpeedDecrease) std::cerr << "WARNING: msg_speedDecrease.png missing.\n";
 
     std::cout << "All textures loaded successfully.\n";
 
@@ -481,15 +493,15 @@ void initGame()
     gBall->lastTouched = -1;
     std::cout << "Ball Parameters set.\n";
 
-    // 5) Fewer powerups => 2
-    for (int i = 0; i < 2; i++)
+    // 5) Fewer powerups => 3
+    for (int i = 0; i < 3; i++)
     {
         float px = 100 + (rand() % (gWindowWidth - 100));
         float py = (float)gWindowHeight + i * 100.f;
         GameObject p(px, py, 32, 32, powerTex);
         p.vy = -250.f - (rand() % 100);
         p.isPowerUp = true;
-        p.powerUpType = rand() % 3;
+        p.powerUpType = rand() % 5;
         gPowerUps.push_back(p);
     }
     std::cout << "Powerups initialized.\n";
@@ -610,6 +622,9 @@ void updatePaddleSizeAndPosition()
 /*********************************************************
  * 2) Ball
  *********************************************************/
+//forward declaration
+void resetItems();
+
 void updateBall(float dt)
 {
     if (!gBall) return;
@@ -637,6 +652,7 @@ void updateBall(float dt)
     if (gBall->x < 0)
     {
         scoreRight++;
+        resetItems();
         // reset
         gBall->x = (gWindowWidth / 2 - 15);
         gBall->y = (gWindowHeight / 2 - 15);
@@ -648,6 +664,7 @@ void updateBall(float dt)
     if (gBall->x + gBall->w > gWindowWidth)
     {
         scoreLeft++;
+        resetItems();
         // reset
         gBall->x = (gWindowWidth / 2 - 15);
         gBall->y = (gWindowHeight / 2 - 15);
@@ -706,19 +723,38 @@ void applyPowerUp(int powerType, int side)
     if (powerType == 0) {
         BALL_SPEED_X *= 1.3f;
         BALL_SPEED_Y *= 1.3f;
+        gBall->vx = BALL_SPEED_X;
+        gBall->vy = BALL_SPEED_Y;
     }
     else if (powerType == 1) {
         // invert direction
         gBall->vx *= -1.f;
     }
+    //enlarge paddle
     else if (powerType == 2) {
         if (side == 0 && gLeftPaddle) {
-            gLeftPaddle->h *= 1.5f;
+            gLeftPaddle->h *= 1.3f;
         }
         else if (side == 1 && gRightPaddle) {
-            gRightPaddle->h *= 1.5f;
+            gRightPaddle->h *= 1.3f;
         }
     }
+    //minimize paddle from oppponent
+    else if (powerType == 3) {
+        if (side == 1 && gLeftPaddle) {
+            gLeftPaddle->h *= 0.8f;
+        }
+        else if (side == 0 && gRightPaddle) {
+            gRightPaddle->h *= 0.8f;
+        }
+    }
+    //decrease ball speed
+    else if (powerType == 4) {
+        BALL_SPEED_X *= 0.85f;
+        BALL_SPEED_Y *= 0.85f;
+        gBall->vx = BALL_SPEED_X;
+        gBall->vy = BALL_SPEED_Y;
+    }    
     showPowerUpMessage(powerType, side);
 }
 
@@ -735,9 +771,9 @@ void updatePowerups(float dt)
         // Off bottom => reset
         if (p.y + p.h < 0)
         {
-            p.x = 50 + (rand() % (gWindowWidth - 100));
+            p.x = 100 + (rand() % (gWindowWidth - 100));
             p.y = (float)gWindowHeight + 50.f;
-            p.powerUpType = rand() % 3;
+            p.powerUpType = rand() % 5;
         }
 
         // collision with ball
@@ -750,9 +786,9 @@ void updatePowerups(float dt)
                 applyPowerUp(p.powerUpType, gBall->lastTouched);
 
             // reset
-            p.x = 50 + (rand() % (gWindowWidth - 100));
+            p.x = 100 + (rand() % (gWindowWidth - 100));
             p.y = (float)gWindowHeight + 50.f;
-            p.powerUpType = rand() % 3;
+            p.powerUpType = rand() % 5;
         }
     }
 }
@@ -771,6 +807,13 @@ void updatePowerUpSize()
 
     
 }
+
+void resetItems() {
+    updatePaddleSizeAndPosition();
+    updateBallSize();
+}
+
+
 
 /*********************************************************
  * updateAll
