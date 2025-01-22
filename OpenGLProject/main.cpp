@@ -8,14 +8,14 @@
 #include "texture_loader.h"
 
 // Fenstergröße
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint WIDTH = 1960, HEIGHT = 1080;
 
 // Paddles
-GLuint paddleWidth = 20, paddleHeight = 100;
+GLfloat paddleWidth = 20, paddleHeight = 100;
 GLfloat paddleSpeed = 0.5f;
 
 // Ball
-GLuint ballSize = 10;
+GLfloat ballSize = 10;
 GLfloat ballSpeed = 0.5f;
 GLfloat ballDirectionX = 1.0f, ballDirectionY = 1.0f;
 
@@ -172,6 +172,12 @@ int main() {
     GLuint shaderProgram = CreateShaderProgram();
     GLuint VAO, VBO;
 
+    // Texturen laden
+    GLuint paddleTexture = TextureLoader::loadTexture("resources/paddle_texture.jpeg");
+    GLuint ballTexture = TextureLoader::loadTexture("resources/ball_texture.png");
+    GLuint paddleNormalMap = TextureLoader::loadNormalMap("resources/paddle_normal.png");
+    GLuint ballNormalMap = TextureLoader::loadNormalMap("resources/ball_normal.png");
+
     // Vertices für das Paddle und den Ball
     GLfloat paddleVertices[] = {
         -0.5f, -0.5f, 0.0f,
@@ -214,6 +220,13 @@ int main() {
         GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
+        // Texturen binden
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, paddleTexture);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, paddleNormalMap);
+
         glBindVertexArray(VAO);
         glDrawArrays(GL_QUADS, 0, 4); // Paddle zeichnen
 
@@ -224,6 +237,13 @@ int main() {
         UpdateBall();
 
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        // Texturen für Ball binden
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ballTexture);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, ballNormalMap);
 
         glDrawArrays(GL_QUADS, 0, 4); // Ball zeichnen
 
