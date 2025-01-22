@@ -28,8 +28,8 @@
 #include "stb_image.h"
 
 // Screen size (fixed camera covers [0..SCR_WIDTH, 0..SCR_HEIGHT])
-static const int SCR_WIDTH = 800;
-static const int SCR_HEIGHT = 600;
+static const int SCR_WIDTH = 1400;
+static const int SCR_HEIGHT = 800;
 
 /*********************************************************
  * Helper: loadFile() to read .glsl files from disk
@@ -264,11 +264,11 @@ void initGame()
     // 3) Create left + right paddles
     gLeftPaddle = new GameObject(
         50.0f, (SCR_HEIGHT / 2 - 50),
-        20.0f, 100.0f,
+        20.0f, 150.0f,
         paddleTex);
     gRightPaddle = new GameObject(
         (SCR_WIDTH - 70.0f), (SCR_HEIGHT / 2 - 50),
-        20.0f, 100.0f,
+        20.0f, 150.0f,
         paddleTex);
 
     // 4) Create the ball
@@ -276,18 +276,15 @@ void initGame()
         (SCR_WIDTH / 2 - 15), (SCR_HEIGHT / 2 - 15),
         30.0f, 30.0f,
         ballTex);
-    gBall->vx = 3.0f;
-    gBall->vy = 2.0f;
+    gBall->vx = 900.0f;
+    gBall->vy = 700.0f;
 
-    // 5) Create 10 falling power-ups
-    for (int i = 0; i < 10; i++)
-    {
-        float px = 50 + rand() % (SCR_WIDTH - 100);
-        float py = SCR_HEIGHT + i * 50.0f;
-        GameObject p(px, py, 32.0f, 32.0f, powerTex);
-        p.vy = -1.0f - (rand() % 3); // fall speed
-        gPowerUps.push_back(p);
-    }
+    // 5) Create 1 falling power-ups
+    float px = 50 + rand() % (SCR_WIDTH - 100);
+    float py = SCR_HEIGHT +  50.0f;
+    GameObject p(px, py, 32.0f, 32.0f, powerTex);
+    p.vy = -0.001f - (rand() % 3); // fall speed
+    gPowerUps.push_back(p);
 }
 
 /*********************************************************
@@ -296,16 +293,16 @@ void initGame()
 void updatePaddles(GLFWwindow* w, float dt)
 {
     // left paddle -> up/down
-    if (glfwGetKey(w, GLFW_KEY_UP) == GLFW_PRESS)
-        gLeftPaddle->y += 200 * dt;
-    if (glfwGetKey(w, GLFW_KEY_DOWN) == GLFW_PRESS)
-        gLeftPaddle->y -= 200 * dt;
+    if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
+        gLeftPaddle->y += 800 * dt;
+    if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
+        gLeftPaddle->y -= 800 * dt;
 
     // right paddle -> W/S
-    if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
-        gRightPaddle->y += 200 * dt;
-    if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
-        gRightPaddle->y -= 200 * dt;
+    if (glfwGetKey(w, GLFW_KEY_UP) == GLFW_PRESS)
+        gRightPaddle->y += 800 * dt;
+    if (glfwGetKey(w, GLFW_KEY_DOWN) == GLFW_PRESS)
+        gRightPaddle->y -= 800 * dt;
 
     // clamp
     if (gLeftPaddle->y < 0) gLeftPaddle->y = 0;
@@ -320,8 +317,8 @@ void updatePaddles(GLFWwindow* w, float dt)
 void updateBall(float dt)
 {
     // move
-    gBall->x += gBall->vx;
-    gBall->y += gBall->vy;
+    gBall->x += gBall->vx * dt;
+    gBall->y += gBall->vy * dt;
 
     // top/bottom
     if (gBall->y < 0) {
@@ -337,14 +334,14 @@ void updateBall(float dt)
     if (gBall->x < 0) {
         gBall->x = SCR_WIDTH / 2 - 15;
         gBall->y = SCR_HEIGHT / 2 - 15;
-        gBall->vx = 3.0f;
-        gBall->vy = 2.0f;
+        gBall->vx = 900.0f;
+        gBall->vy = 700.0f;
     }
     if (gBall->x + gBall->w > SCR_WIDTH) {
         gBall->x = SCR_WIDTH / 2 - 15;
         gBall->y = SCR_HEIGHT / 2 - 15;
-        gBall->vx = -3.0f;
-        gBall->vy = 2.0f;
+        gBall->vx = -900.0f;
+        gBall->vy = 700.0f;
     }
 
     // collisions with paddles
@@ -476,6 +473,10 @@ int main()
         float dt = now - lastTime;
         lastTime = now;
 
+        // Verlangsamen des Spiels, indem dt mit einem Faktor multipliziert wird
+        // Du kannst den Faktor anpassen, um die Geschwindigkeit zu verändern
+        dt *= 0.5f; // Faktor, um das Spiel langsamer zu machen (Halbierung der Geschwindigkeit)
+
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -524,3 +525,4 @@ int main()
     glfwTerminate();
     return 0;
 }
+
