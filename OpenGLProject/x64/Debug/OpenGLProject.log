@@ -1,2 +1,9 @@
-﻿  OpenGLProject.cpp
-  OpenGLProject.vcxproj -> C:\Users\johen\source\repos\OpenGLProject\x64\Debug\OpenGLProject.exe
+﻿  main.cpp
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\main.cpp(116,25): warning C4244: "+=": Konvertierung von "GLfloat" in "GLuint", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\main.cpp(119,25): warning C4244: "-=": Konvertierung von "GLfloat" in "GLuint", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\main.cpp(124,25): warning C4244: "+=": Konvertierung von "GLfloat" in "GLuint", möglicher Datenverlust
+C:\Users\ninor\Documents\GitHub\OpenGLProject\OpenGLProject\main.cpp(127,25): warning C4244: "-=": Konvertierung von "GLfloat" in "GLuint", möglicher Datenverlust
+LINK : warning LNK4098: Standardbibliothek "MSVCRT" steht in Konflikt mit anderen Bibliotheken; /NODEFAULTLIB:Bibliothek verwenden.
+texture_loader.obj : error LNK2019: Verweis auf nicht aufgelöstes externes Symbol "stbi_load" in Funktion ""public: static unsigned int __cdecl TextureLoader::loadTexture(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?loadTexture@TextureLoader@@SAIAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)".
+texture_loader.obj : error LNK2019: Verweis auf nicht aufgelöstes externes Symbol "stbi_image_free" in Funktion ""public: static unsigned int __cdecl TextureLoader::loadTexture(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?loadTexture@TextureLoader@@SAIAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z)".
+C:\Users\ninor\Documents\GitHub\OpenGLProject\x64\Debug\OpenGLProject.exe : fatal error LNK1120: 2 nicht aufgelöste Externe
