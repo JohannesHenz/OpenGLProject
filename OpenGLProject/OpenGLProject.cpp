@@ -27,9 +27,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+//Forward declaration
+void updatePaddleSizeAndPosition();
+void updateBallSize();
+void updatePowerUpSize();
+
  // --- Window size (adjustable via callback)
-static int gWindowWidth = 800;
-static int gWindowHeight = 600;
+static int gWindowWidth = 1400;
+static int gWindowHeight = 800;
 
 // Callback for window resizing
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -37,6 +42,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     gWindowWidth = width;
     gWindowHeight = height;
     glViewport(0, 0, width, height);
+    
+
+    //resize props
+    updatePaddleSizeAndPosition();
+    updateBallSize();
+    updatePowerUpSize();
 }
 
 /*********************************************************
@@ -198,7 +209,7 @@ struct BallObject : public GameObject {
 BallObject* gBall = nullptr;
 
 // Fewer powerups
-std::vector<GameObject> gPowerUps; // 3 in total
+std::vector<GameObject> gPowerUps; //2 in total
 
 // Background
 GameObject* gBackground = nullptr;
@@ -374,11 +385,16 @@ void drawObject(const GameObject& obj, const glm::mat4& pv)
 }
 
 /*********************************************************
- * Speeds
+ * dynamic Speeds
  *********************************************************/
-static const float PADDLE_SPEED = 200.f;
-static const float BALL_SPEED_X = 1.5f;
-static const float BALL_SPEED_Y = 1.0f;
+
+float paddleModificator = 0.5f;
+float ballModificatorX = 0.3f;
+float ballModificatorY = 0.24f;
+
+static float PADDLE_SPEED = gWindowHeight * paddleModificator;
+static float BALL_SPEED_X = gWindowWidth * ballModificatorX;
+static float BALL_SPEED_Y = gWindowWidth * ballModificatorY;
 
 /*********************************************************
  * initGame()
@@ -437,7 +453,7 @@ void initGame()
     std::cout << "Background initialized.\n";
 
     // 3) Paddles
-    gLeftPaddle = new GameObject(50, (gWindowHeight / 2 - 50), 20, 100, paddleTex);
+    gLeftPaddle = new GameObject(50, (gWindowHeight / 2 - 50), 20, 120, paddleTex);
     if (!gLeftPaddle) {
         std::cerr << "ERROR: gLeftPaddle new failed.\n";
         std::exit(1);
@@ -445,7 +461,7 @@ void initGame()
     std::cout << "Left Paddle initialized.\n";
 
     gRightPaddle = new GameObject(gWindowWidth - 70, (gWindowHeight / 2 - 50),
-        20, 100, paddleTex);
+        20, 120, paddleTex);
     if (!gRightPaddle) {
         std::cerr << "ERROR: gRightPaddle new failed.\n";
         std::exit(1);
@@ -465,13 +481,13 @@ void initGame()
     gBall->lastTouched = -1;
     std::cout << "Ball Parameters set.\n";
 
-    // 5) Fewer powerups => 3
-    for (int i = 0; i < 3; i++)
+    // 5) Fewer powerups => 2
+    for (int i = 0; i < 2; i++)
     {
-        float px = 50 + (rand() % (gWindowWidth - 100));
+        float px = 100 + (rand() % (gWindowWidth - 100));
         float py = (float)gWindowHeight + i * 100.f;
         GameObject p(px, py, 32, 32, powerTex);
-        p.vy = -1.f - (rand() % 2);
+        p.vy = -250.f - (rand() % 100);
         p.isPowerUp = true;
         p.powerUpType = rand() % 3;
         gPowerUps.push_back(p);
@@ -545,17 +561,20 @@ void updatePaddles(GLFWwindow* w, float dt)
 {
     if (!gLeftPaddle || !gRightPaddle) return;
 
+
     // left paddle -> up/down arrow
-    if (glfwGetKey(w, GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
         gLeftPaddle->y += PADDLE_SPEED * dt;
-    if (glfwGetKey(w, GLFW_KEY_DOWN) == GLFW_PRESS)
+    if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
         gLeftPaddle->y -= PADDLE_SPEED * dt;
 
+
     // right paddle -> W/S
-    if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(w, GLFW_KEY_UP) == GLFW_PRESS)
         gRightPaddle->y += PADDLE_SPEED * dt;
-    if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(w, GLFW_KEY_DOWN) == GLFW_PRESS)
         gRightPaddle->y -= PADDLE_SPEED * dt;
+
 
     // clamp
     if (gLeftPaddle->y < 0) gLeftPaddle->y = 0;
@@ -567,6 +586,27 @@ void updatePaddles(GLFWwindow* w, float dt)
         gRightPaddle->y = gWindowHeight - gRightPaddle->h;
 }
 
+void updatePaddleSizeAndPosition()
+{
+    // dynamic resizing of paddles
+    float paddleWidth = gWindowWidth * 0.02f;  // 2% of window width
+    float paddleHeight = gWindowHeight * 0.2f; // 20% of window height
+
+    // Left Paddle
+    gLeftPaddle->w = paddleWidth;
+    gLeftPaddle->h = paddleHeight;
+    gLeftPaddle->x = gWindowWidth * 0.05f; // 5% Abstand vom linken Rand
+
+    // Right Paddle
+    gRightPaddle->w = paddleWidth;
+    gRightPaddle->h = paddleHeight;
+    gRightPaddle->x = gWindowWidth - gRightPaddle->w - (gWindowWidth * 0.05f); 
+
+    //Upate paddle speed
+    PADDLE_SPEED = gWindowHeight * paddleModificator;
+}
+
+
 /*********************************************************
  * 2) Ball
  *********************************************************/
@@ -574,8 +614,12 @@ void updateBall(float dt)
 {
     if (!gBall) return;
 
-    gBall->x += gBall->vx;
-    gBall->y += gBall->vy;
+    // dynamic resizing of paddles
+    gBall->w = gWindowWidth * 0.02f;  // 2% of window width
+    gBall->h = gWindowWidth * 0.02f; // 20% of window height
+
+    gBall->x += gBall->vx * dt;
+    gBall->y += gBall->vy * dt;
 
     // top/bottom
     if (gBall->y < 0)
@@ -639,6 +683,19 @@ void updateBall(float dt)
     }
 }
 
+void updateBallSize()
+{
+    // dynamic resizing ball
+    gBall->w = gWindowWidth * 0.02f;  // 2% of window width
+    gBall->h = gWindowWidth * 0.02f; // 2% of window height
+
+    // update ball speed
+    BALL_SPEED_X = gWindowWidth * ballModificatorX;
+    BALL_SPEED_Y = gWindowWidth * ballModificatorY;
+    gBall->vx = BALL_SPEED_X;
+    gBall->vy = BALL_SPEED_Y;
+}
+
 /*********************************************************
  * 3) Powerups
  *********************************************************/
@@ -647,8 +704,8 @@ void applyPowerUp(int powerType, int side)
     if (!gBall) return;
     // side=0 => left, side=1 => right
     if (powerType == 0) {
-        gBall->vx *= 1.3f;
-        gBall->vy *= 1.3f;
+        BALL_SPEED_X *= 1.3f;
+        BALL_SPEED_Y *= 1.3f;
     }
     else if (powerType == 1) {
         // invert direction
@@ -672,8 +729,8 @@ void updatePowerups(float dt)
     for (auto& p : gPowerUps)
     {
         if (!p.isPowerUp) continue;
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
 
         // Off bottom => reset
         if (p.y + p.h < 0)
@@ -698,6 +755,21 @@ void updatePowerups(float dt)
             p.powerUpType = rand() % 3;
         }
     }
+}
+
+void updatePowerUpSize()
+{
+    // dynamic resizing powerUPs
+    for (auto& p : gPowerUps)
+    {
+        p.w = gWindowWidth * 0.02f;  // 2% of window width
+        p.h = gWindowWidth * 0.02f; // 2% of window height
+
+        // update powerup speed
+        p.vy = -gWindowHeight * 0.3f;
+    }
+
+    
 }
 
 /*********************************************************
