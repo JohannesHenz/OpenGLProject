@@ -1,4 +1,4 @@
-/*********************************************************
+﻿/*********************************************************
  * 2D Normal-Mapped Pong Example (Fixed Camera)
  *  + On-screen score
  *  + Power-up effect messages
@@ -35,6 +35,9 @@ void updatePowerUpSize();
  // --- Window size (adjustable via callback)
 static int gWindowWidth = 1400;
 static int gWindowHeight = 800;
+
+//Global Variable for Powerups
+int gCurrentPowerUp = -1;
 
 // Callback for window resizing
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -299,6 +302,15 @@ void drawNumber(int number, float x, float y, float digitW, float digitH, const 
     }
 }
 
+GLuint getPowerUpIcon(int type) {
+	if (type == 0) return gMsgTexSpeed;
+	else if (type == 1) return gMsgTexSpawn;
+	else if (type == 2) return gMsgTexEnlarge;
+	else if (type == 3) return gMsgTexMinimize;
+	else if (type == 4) return gMsgTexSpeedDecrease;
+	return 0;
+}
+
 /*********************************************************
  * showPowerUpMessage()
  *********************************************************/
@@ -388,6 +400,41 @@ void drawObject(const GameObject& obj, const glm::mat4& pv)
     glBindVertexArray(0);
 }
 
+// A small function placed anywhere below your other code:
+void drawActivePowerUpIndicator(const glm::mat4& pv)
+{
+    if (gCurrentPowerUp < 0) return; // No current power‐up
+    GLuint iconTex = getPowerUpIcon(gCurrentPowerUp);
+    if (!iconTex) return; // no icon for this type
+
+    // We'll place it top-center, 150 wide & high
+    float iconW = 150.0f;
+    float iconH = 150.0f;
+
+    // For top-center:
+    float x = (gWindowWidth * 0.5f) - (iconW * 0.5f);
+    float y = gWindowHeight - iconH - 10.0f; // 10 px down from top
+
+    // We'll reuse your drawQuadTexture approach, but we want to ensure
+    // it doesn't do normal mapping. However, that function already calls
+    // glUniform1i(gUniUseNormalMap, 0). So let's do exactly that:
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, iconTex);
+    // Force no normal map
+    glUniform1i(gUniUseNormalMap, 0);
+
+    // Build a simple model matrix
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.f));
+    model = glm::scale(model, glm::vec3(iconW, iconH, 1.f));
+    glm::mat4 mvp = pv * model;
+    glUniformMatrix4fv(gUniMVP, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    glBindVertexArray(gVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+
 /*********************************************************
  * dynamic Speeds
  *********************************************************/
@@ -441,10 +488,10 @@ void initGame()
     gMsgTexEnlarge = loadTexture("../resources/msg_enlarge.png");
     std::cout << "Enlarge Texture loaded.\n";
     std::cout << "Loading Minimize Powerup\n";
-    gMsgTexMinimize = loadTexture("../resources/msg_enlarge.png");
+    gMsgTexMinimize = loadTexture("../resources/msg_minimize.png");
     std::cout << "Minimize Texture loaded.\n";
     std::cout << "Loading SpeedDecrease Powerup\n";
-    gMsgTexSpeedDecrease = loadTexture("../resources/msg_enlarge.png");
+    gMsgTexSpeedDecrease = loadTexture("../resources/msg_slowdown.png");
     std::cout << "SpeedDecrease Texture loaded.\n";
 
     if (!gMsgTexSpeed)   std::cerr << "WARNING: msg_speed.png missing.\n";
@@ -652,6 +699,7 @@ void updateBall(float dt)
     if (gBall->x < 0)
     {
         scoreRight++;
+		gCurrentPowerUp = -1;
         resetItems();
         // reset
         gBall->x = (gWindowWidth / 2 - 15);
@@ -664,6 +712,8 @@ void updateBall(float dt)
     if (gBall->x + gBall->w > gWindowWidth)
     {
         scoreLeft++;
+        gCurrentPowerUp = -1;
+
         resetItems();
         // reset
         gBall->x = (gWindowWidth / 2 - 15);
@@ -719,8 +769,13 @@ void updateBallSize()
 void applyPowerUp(int powerType, int side)
 {
     if (!gBall) return;
+
+    // Record which power‐up is now active
+    gCurrentPowerUp = powerType;
+
     // side=0 => left, side=1 => right
     if (powerType == 0) {
+        // Speed up the ball
         BALL_SPEED_X *= 1.3f;
         BALL_SPEED_Y *= 1.3f;
         gBall->vx = BALL_SPEED_X;
@@ -730,8 +785,8 @@ void applyPowerUp(int powerType, int side)
         // invert direction
         gBall->vx *= -1.f;
     }
-    //enlarge paddle
     else if (powerType == 2) {
+        // enlarge paddle
         if (side == 0 && gLeftPaddle) {
             gLeftPaddle->h *= 1.3f;
         }
@@ -739,8 +794,8 @@ void applyPowerUp(int powerType, int side)
             gRightPaddle->h *= 1.3f;
         }
     }
-    //minimize paddle from oppponent
     else if (powerType == 3) {
+        // minimize the opponent paddle
         if (side == 1 && gLeftPaddle) {
             gLeftPaddle->h *= 0.8f;
         }
@@ -748,15 +803,18 @@ void applyPowerUp(int powerType, int side)
             gRightPaddle->h *= 0.8f;
         }
     }
-    //decrease ball speed
     else if (powerType == 4) {
+        // slow down the ball
         BALL_SPEED_X *= 0.85f;
         BALL_SPEED_Y *= 0.85f;
         gBall->vx = BALL_SPEED_X;
         gBall->vy = BALL_SPEED_Y;
-    }    
+    }
+
+    // The existing ephemeral message system
     showPowerUpMessage(powerType, side);
 }
+
 
 void updatePowerups(float dt)
 {
@@ -955,6 +1013,9 @@ int main()
 
         // 6) ephemeral messages
         drawMessages(pv);
+
+        // 7) draw big icon for the current power-up
+        drawActivePowerUpIndicator(pv);
 
         glfwSwapBuffers(window);
     }
