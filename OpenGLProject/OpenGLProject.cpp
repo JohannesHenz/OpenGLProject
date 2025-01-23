@@ -494,14 +494,14 @@ void initGame()
     std::cout << "Background initialized.\n";
 
     // Paddles
-    gLeftPaddle = new GameObject(50, (gWindowHeight / 2 - 50), 20, 120, paddleTex);
+    gLeftPaddle = new GameObject(50, (gWindowHeight / 2.f - 50.f), 20, 120, paddleTex);
     if (!gLeftPaddle) {
         std::cerr << "ERROR: gLeftPaddle new failed.\n";
         std::exit(1);
     }
     std::cout << "Left Paddle initialized.\n";
 
-    gRightPaddle = new GameObject(gWindowWidth - 70, (gWindowHeight / 2 - 50),
+    gRightPaddle = new GameObject(gWindowWidth - 70.f, (gWindowHeight / 2.f - 50.f),
         20, 120, paddleTex);
     if (!gRightPaddle) {
         std::cerr << "ERROR: gRightPaddle new failed.\n";
@@ -510,7 +510,7 @@ void initGame()
     std::cout << "Right Paddle initialized.\n";
 
     // Ball
-    gBall = new BallObject((gWindowWidth / 2 - 15), (gWindowHeight / 2 - 15),
+    gBall = new BallObject((gWindowWidth / 2.f - 15.f), (gWindowHeight / 2.f - 15.f),
         30, 30, ballTex);
     if (!gBall) {
         std::cerr << "ERROR: gBall new failed.\n";
@@ -525,7 +525,7 @@ void initGame()
     // Powerups => 3
     for (int i = 0; i < 3; i++)
     {
-        float px = 100 + (rand() % (gWindowWidth - 100));
+        float px = 100.f + (rand() % (gWindowWidth - 100));
         float py = (float)gWindowHeight + i * 100.f;
         GameObject p(px, py, 32, 32, powerTex);
         p.vy = -250.f - (rand() % 100);
@@ -684,8 +684,8 @@ void updateBall(float dt)
 		gCurrentPowerUp = -1;
         resetItems();
         // reset
-        gBall->x = (gWindowWidth / 2 - 15);
-        gBall->y = (gWindowHeight / 2 - 15);
+        gBall->x = (gWindowWidth / 2.f - 15.f);
+        gBall->y = (gWindowHeight / 2.f - 15.f);
         gBall->vx = BALL_SPEED_X;
         gBall->vy = BALL_SPEED_Y;
         gBall->lastTouched = -1;
@@ -698,8 +698,8 @@ void updateBall(float dt)
 
         resetItems();
         // reset
-        gBall->x = (gWindowWidth / 2 - 15);
-        gBall->y = (gWindowHeight / 2 - 15);
+        gBall->x = (gWindowWidth / 2.f - 15.f);
+        gBall->y = (gWindowHeight / 2.f - 15.f);
         gBall->vx = -BALL_SPEED_X;
         gBall->vy = BALL_SPEED_Y;
         gBall->lastTouched = -1;
@@ -811,7 +811,7 @@ void updatePowerups(float dt)
         // Off bottom => reset
         if (p.y + p.h < 0)
         {
-            p.x = 100 + (rand() % (gWindowWidth - 100));
+            p.x = 100.f + (rand() % (gWindowWidth - 100));
             p.y = (float)gWindowHeight + 50.f;
             p.powerUpType = rand() % 5;
         }
@@ -826,7 +826,7 @@ void updatePowerups(float dt)
                 applyPowerUp(p.powerUpType, gBall->lastTouched);
 
             // reset
-            p.x = 100 + (rand() % (gWindowWidth - 100));
+            p.x = 100.f + (rand() % (gWindowWidth - 100));
             p.y = (float)gWindowHeight + 50.f;
             p.powerUpType = rand() % 5;
         }
