@@ -1,17 +1,4 @@
-﻿/*********************************************************
- * 2D Normal-Mapped Pong Example (Fixed Camera)
- *  + On-screen score
- *  + Power-up effect messages
- *  + Fewer power-ups
- *  + Window resizing
- *
- * Additional:
- *  - Extra debug checks/logging for shader/texture loads
- *  - If a critical load fails, we exit early to avoid crashes
- *  - Check pointers after new
- *********************************************************/
-
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp> 
@@ -27,12 +14,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-//Forward declaration
+// Forward declaration
 void updatePaddleSizeAndPosition();
 void updateBallSize();
 void updatePowerUpSize();
 
- // --- Window size (adjustable via callback)
+ // Window size (adjustable via callback)
 static int gWindowWidth = 1400;
 static int gWindowHeight = 800;
 
@@ -47,7 +34,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
     
 
-    //resize props
+    // Resize props
     updatePaddleSizeAndPosition();
     updateBallSize();
     updatePowerUpSize();
@@ -132,8 +119,7 @@ GLuint createShaderProgram(const std::string& vsCode, const std::string& fsCode)
 }
 
 /*********************************************************
- * loadTexture() - uses stb_image to load .png/.jpg,
- * plus logging & checks
+ * Load Texture - uses stb_image to load images
  *********************************************************/
 GLuint loadTexture(const char* filePath, bool flipVert = true)
 {
@@ -159,7 +145,7 @@ GLuint loadTexture(const char* filePath, bool flipVert = true)
     glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    // default texture params
+    // Default texture params
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -174,7 +160,7 @@ GLuint loadTexture(const char* filePath, bool flipVert = true)
 }
 
 /*********************************************************
- * Basic object (paddle, ball, background, powerup, etc.)
+ * Basic object pattern for all kinds of objects (paddle, ball, background, powerup)
  *********************************************************/
 struct GameObject {
     float x, y, w, h;
@@ -184,7 +170,8 @@ struct GameObject {
     GLuint normalTex;
 
     bool  isPowerUp = false;
-    int   powerUpType = 0; // 0->speed up, 1->invert ball, 2->enlarge, 3->minimize, 4->decrease speed
+    int   powerUpType = 0; 
+    // 0->speed up, 1->invert ball, 2->enlarge, 3->minimize, 4->decrease speed
 
     GameObject(float px, float py, float pw, float ph,
         GLuint tex, bool nm = false, GLuint ntex = 0)
@@ -203,7 +190,8 @@ GameObject* gRightPaddle = nullptr;
 
 // Ball
 struct BallObject : public GameObject {
-    int lastTouched; // -1=none, 0=left, 1=right
+    int lastTouched; 
+    // -1=none, 0=left, 1=right
     BallObject(float px, float py, float pw, float ph, GLuint tex)
         : GameObject(px, py, pw, ph, tex, false, 0),
         lastTouched(-1)
@@ -211,8 +199,9 @@ struct BallObject : public GameObject {
 };
 BallObject* gBall = nullptr;
 
-// Fewer powerups
-std::vector<GameObject> gPowerUps; //3 in total
+// Powerups
+std::vector<GameObject> gPowerUps; 
+//3 in total -> adustable in function initGame()
 
 // Background
 GameObject* gBackground = nullptr;
@@ -227,11 +216,6 @@ GLint  gUniLightPos, gUniResolution;
 
 /*********************************************************
  * Score & Message Rendering
- *  - We'll load 10 digit textures (digit0..digit9.png)
- *  - We'll also load 3 message textures:
- *      msg_speed.png
- *      msg_spawn.png
- *      msg_enlarge.png
  *********************************************************/
 GLuint gDigitTextures[10];
 GLuint gMsgTexSpeed = 0;
@@ -243,17 +227,18 @@ GLuint gMsgTexSpeedDecrease = 0;
 // Active messages on screen
 struct ActiveMessage {
     GLuint texture;
-    float timer;   // how long to remain
+    float timer;   
+    // how long to remain
 };
 
 std::vector<ActiveMessage> gMessages;
 
 /*********************************************************
- * drawQuadTexture() - For text or messages
+ * DrawQuadTexture - For text or messages
  *********************************************************/
 void drawQuadTexture(GLuint tex, float x, float y, float w, float h, const glm::mat4& pv)
 {
-    // Check if the texture is nonzero
+    // Check if the texture is initialized
     if (tex == 0) {
         std::cerr << "WARNING: drawQuadTexture called with tex=0!\n";
         return;
@@ -276,7 +261,7 @@ void drawQuadTexture(GLuint tex, float x, float y, float w, float h, const glm::
 }
 
 /*********************************************************
- * drawNumber()
+ * Draw Numbers 
  *********************************************************/
 void drawNumber(int number, float x, float y, float digitW, float digitH, const glm::mat4& pv)
 {
@@ -312,7 +297,7 @@ GLuint getPowerUpIcon(int type) {
 }
 
 /*********************************************************
- * showPowerUpMessage()
+ * ShowPowerUpMessage
  *********************************************************/
 void showPowerUpMessage(int powerType, int side)
 {
@@ -334,7 +319,7 @@ void showPowerUpMessage(int powerType, int side)
 }
 
 /*********************************************************
- * createQuad()
+ * Create Quad
  *********************************************************/
 void createQuad()
 {
@@ -368,7 +353,7 @@ void createQuad()
 }
 
 /*********************************************************
- * drawObject() - for paddles, ball, background, etc.
+ * Draw Objects - for paddles, ball, background, powerUP
  *********************************************************/
 void drawObject(const GameObject& obj, const glm::mat4& pv)
 {
@@ -400,30 +385,27 @@ void drawObject(const GameObject& obj, const glm::mat4& pv)
     glBindVertexArray(0);
 }
 
-// A small function placed anywhere below your other code:
+/*********************************************************
+ * Draw Active PowerUp Indicator
+ *********************************************************/
 void drawActivePowerUpIndicator(const glm::mat4& pv)
 {
     if (gCurrentPowerUp < 0) return; // No current power‐up
     GLuint iconTex = getPowerUpIcon(gCurrentPowerUp);
     if (!iconTex) return; // no icon for this type
 
-    // We'll place it top-center, 150 wide & high
+    // Placement
     float iconW = 150.0f;
     float iconH = 150.0f;
 
-    // For top-center:
     float x = (gWindowWidth * 0.5f) - (iconW * 0.5f);
     float y = gWindowHeight - iconH - 10.0f; // 10 px down from top
 
-    // We'll reuse your drawQuadTexture approach, but we want to ensure
-    // it doesn't do normal mapping. However, that function already calls
-    // glUniform1i(gUniUseNormalMap, 0). So let's do exactly that:
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, iconTex);
-    // Force no normal map
     glUniform1i(gUniUseNormalMap, 0);
 
-    // Build a simple model matrix
+    // Matrix calculation
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.f));
     model = glm::scale(model, glm::vec3(iconW, iconH, 1.f));
     glm::mat4 mvp = pv * model;
@@ -436,7 +418,7 @@ void drawActivePowerUpIndicator(const glm::mat4& pv)
 
 
 /*********************************************************
- * dynamic Speeds
+ * Dynamic Speeds (Resizing)
  *********************************************************/
 
 float paddleModificator = 0.5f;
@@ -448,20 +430,20 @@ static float BALL_SPEED_X = gWindowWidth * ballModificatorX;
 static float BALL_SPEED_Y = gWindowWidth * ballModificatorY;
 
 /*********************************************************
- * initGame()
+ * InitGame
  *********************************************************/
 void initGame()
 {
     std::cout << "Init Game Started.\n";
 
-    // 1) Load textures
+    // Load textures
     GLuint bgDiffuse = loadTexture("../resources/background_diffuse.png");
     GLuint bgNormal = loadTexture("../resources/background_normal.png");
     GLuint paddleTex = loadTexture("../resources/paddle_diffuse.png");
     GLuint ballTex = loadTexture("../resources/ball_diffuse.png");
     GLuint powerTex = loadTexture("../resources/powerup.png");
 
-    // If any critical ones are 0, we can bail
+    // If any critical ones are 0, exit game
     if (!bgDiffuse || !bgNormal || !paddleTex || !ballTex || !powerTex) {
         std::cerr << "ERROR: A critical texture didn't load. Exiting.\n";
         std::exit(1);
@@ -502,7 +484,7 @@ void initGame()
 
     std::cout << "All textures loaded successfully.\n";
 
-    // 2) Background
+    // Background
     gBackground = new GameObject(0, 0, (float)gWindowWidth, (float)gWindowHeight,
         bgDiffuse, true, bgNormal);
     if (!gBackground) {
@@ -511,7 +493,7 @@ void initGame()
     }
     std::cout << "Background initialized.\n";
 
-    // 3) Paddles
+    // Paddles
     gLeftPaddle = new GameObject(50, (gWindowHeight / 2 - 50), 20, 120, paddleTex);
     if (!gLeftPaddle) {
         std::cerr << "ERROR: gLeftPaddle new failed.\n";
@@ -527,7 +509,7 @@ void initGame()
     }
     std::cout << "Right Paddle initialized.\n";
 
-    // 4) Ball
+    // Ball
     gBall = new BallObject((gWindowWidth / 2 - 15), (gWindowHeight / 2 - 15),
         30, 30, ballTex);
     if (!gBall) {
@@ -540,7 +522,7 @@ void initGame()
     gBall->lastTouched = -1;
     std::cout << "Ball Parameters set.\n";
 
-    // 5) Fewer powerups => 3
+    // Powerups => 3
     for (int i = 0; i < 3; i++)
     {
         float px = 100 + (rand() % (gWindowWidth - 100));
@@ -585,7 +567,7 @@ void initGame()
 
 
 /*********************************************************
- * ephemeral messages for power-ups
+ * Messages for power-ups
  *********************************************************/
 void updateMessages(float dt)
 {
@@ -614,21 +596,21 @@ void drawMessages(const glm::mat4& pv)
 }
 
 /*********************************************************
- * 1) Paddles
+ * Paddles
  *********************************************************/
 void updatePaddles(GLFWwindow* w, float dt)
 {
     if (!gLeftPaddle || !gRightPaddle) return;
 
 
-    // left paddle -> up/down arrow
+    // left paddle -> W/S
     if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
         gLeftPaddle->y += PADDLE_SPEED * dt;
     if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
         gLeftPaddle->y -= PADDLE_SPEED * dt;
 
 
-    // right paddle -> W/S
+    // right paddle -> up/down arrow
     if (glfwGetKey(w, GLFW_KEY_UP) == GLFW_PRESS)
         gRightPaddle->y += PADDLE_SPEED * dt;
     if (glfwGetKey(w, GLFW_KEY_DOWN) == GLFW_PRESS)
@@ -654,20 +636,20 @@ void updatePaddleSizeAndPosition()
     // Left Paddle
     gLeftPaddle->w = paddleWidth;
     gLeftPaddle->h = paddleHeight;
-    gLeftPaddle->x = gWindowWidth * 0.05f; // 5% Abstand vom linken Rand
+    gLeftPaddle->x = gWindowWidth * 0.05f;
 
     // Right Paddle
     gRightPaddle->w = paddleWidth;
     gRightPaddle->h = paddleHeight;
     gRightPaddle->x = gWindowWidth - gRightPaddle->w - (gWindowWidth * 0.05f); 
 
-    //Upate paddle speed
+    // Update paddle speed
     PADDLE_SPEED = gWindowHeight * paddleModificator;
 }
 
 
 /*********************************************************
- * 2) Ball
+ * Ball
  *********************************************************/
 //forward declaration
 void resetItems();
@@ -676,7 +658,7 @@ void updateBall(float dt)
 {
     if (!gBall) return;
 
-    // dynamic resizing of paddles
+    // Dynamic resizing of paddles
     gBall->w = gWindowWidth * 0.02f;  // 2% of window width
     gBall->h = gWindowWidth * 0.02f; // 20% of window height
 
@@ -752,11 +734,11 @@ void updateBall(float dt)
 
 void updateBallSize()
 {
-    // dynamic resizing ball
+    // Dynamic resizing ball
     gBall->w = gWindowWidth * 0.02f;  // 2% of window width
     gBall->h = gWindowWidth * 0.02f; // 2% of window height
 
-    // update ball speed
+    // Update ball speed
     BALL_SPEED_X = gWindowWidth * ballModificatorX;
     BALL_SPEED_Y = gWindowWidth * ballModificatorY;
     gBall->vx = BALL_SPEED_X;
@@ -764,7 +746,7 @@ void updateBallSize()
 }
 
 /*********************************************************
- * 3) Powerups
+ * Powerups
  *********************************************************/
 void applyPowerUp(int powerType, int side)
 {
@@ -811,7 +793,7 @@ void applyPowerUp(int powerType, int side)
         gBall->vy = BALL_SPEED_Y;
     }
 
-    // The existing ephemeral message system
+    // The existing message system
     showPowerUpMessage(powerType, side);
 }
 
@@ -834,7 +816,7 @@ void updatePowerups(float dt)
             p.powerUpType = rand() % 5;
         }
 
-        // collision with ball
+        // Collision with ball
         if (gBall->x< p.x + p.w &&
             gBall->x + gBall->w> p.x &&
             gBall->y< p.y + p.h &&
@@ -853,19 +835,23 @@ void updatePowerups(float dt)
 
 void updatePowerUpSize()
 {
-    // dynamic resizing powerUPs
+    // Dynamic resizing powerUPs
     for (auto& p : gPowerUps)
     {
         p.w = gWindowWidth * 0.02f;  // 2% of window width
         p.h = gWindowWidth * 0.02f; // 2% of window height
 
-        // update powerup speed
+        // Update powerup speed
         p.vy = -gWindowHeight * 0.3f;
     }
 
     
 }
 
+
+/*********************************************************
+ * Reset item effects after a point was made
+ *********************************************************/
 void resetItems() {
     updatePaddleSizeAndPosition();
     updateBallSize();
@@ -933,7 +919,7 @@ int main()
     glUniform1i(gUniDiffuse, 0);
     glUniform1i(gUniNormal, 1);
 
-    // pass initial resolution
+    // Pass initial resolution
     glUniform2f(gUniResolution, (float)gWindowWidth, (float)gWindowHeight);
 
     createQuad();
@@ -979,14 +965,14 @@ int main()
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 pv = proj * view;
 
-        // 1) background
+        // background
         if (gBackground) {
             gBackground->w = (float)gWindowWidth;
             gBackground->h = (float)gWindowHeight;
             drawObject(*gBackground, pv);
         }
 
-        // 2) paddles
+        // paddles
         if (gLeftPaddle) {
             drawObject(*gLeftPaddle, pv);
         }
@@ -999,22 +985,22 @@ int main()
 		}
 		else { std::cerr << "Error: gRightPaddle is null." << std::endl; return 1; }    
 
-        // 3) ball
+        // ball
        if (gBall) drawObject(*gBall, pv);
 
-        // 4) powerups
+        // powerups
         for (auto& p : gPowerUps) {
             drawObject(p, pv);
         }
 
-        // 5) draw score
+        // draw score
         drawNumber(scoreLeft, 50.f, (float)gWindowHeight - 60.f, 40.f, 40.f, pv);
         drawNumber(scoreRight, gWindowWidth - 90.f, (float)gWindowHeight - 60.f, 40.f, 40.f, pv);
 
-        // 6) ephemeral messages
+        // messages
         drawMessages(pv);
 
-        // 7) draw big icon for the current power-up
+        // Draw big icon for the current power-up
         drawActivePowerUpIndicator(pv);
 
         glfwSwapBuffers(window);
